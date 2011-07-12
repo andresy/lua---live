@@ -98,12 +98,12 @@ local code = {}
 code[1] = [[
 require 'image'
 lena = image.lena()
-image.display{image=lena, win=win, zoom=0.5}
+image.display{image=lena, win=win, zoom=0.5, x=width-300, y=height-320}
 ]]
 
 code[2] = [[
-lenagray = image.rgb2y(lena)
-image.display{image=lenagray, win=win, zoom=0.5}
+lena = image.rgb2y(lena)
+image.display{image=lena, win=win, zoom=0.5, x=width-300, y=height-320}
 ]]
 
 function __interaction__(self,it)
@@ -111,6 +111,8 @@ if it == 1 then self:consoleClear() end
 if not code[it] then return end
 self:console(code[it])
 win = self.w
+width = self.szw
+height = self.szh
 loadstring(code[it])()
 end
 </lua>
