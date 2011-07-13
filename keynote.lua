@@ -36,6 +36,7 @@ function Slides:__init(slides, css, title, width, height)
               end)
 
    self:fromhtml(self.html)
+   if self.remainingTime then self:displaytimer(self.remainingTime) end
 end
 
 function Slides:addSlide(slide)
@@ -95,29 +96,31 @@ function Slides:print(text, options, moveon)
 end
 
 function Slides.displaytimer(s,remainingmins)
-   if not self.timer then
-      self.timer = qt.QTimer()
-      local remainingtime = (remainingmins or 20)*60
-      self.timer.singleShot = false
-      qt.connect(self.timer, 'timeout()',
+   if not s.timer then
+      s.timer = qt.QTimer()
+      local remainingtime = (remainingmins or 20)*60+1
+      s.timer.singleShot = false
+      qt.connect(s.timer, 'timeout()',
                  function ()
                     if remainingtime > 0 then
                        remainingtime = remainingtime - 1
                     end
-                    s.w:setfontsize(10)
+                    s.w:setfontsize(12)
                     local remainingSec = remainingtime % 60
                     local remainingMin = math.floor(remainingtime/60)
                     local str = 'time left: ' .. remainingMin .. ':' .. string.format("%02d", remainingSec)
                     local width = s.w:stringrect(str):totable().width
                     local height = s.w:stringrect(str):totable().height
+                    s.w:gbegin()
                     s.w:setcolor(1, 1, 1)
-                    s.w:rectangle(s.szw-s.fszb/2+1-width, 3*s.fszb/2+s.yoffset-3-height, width, height, 'AlignRight')
+                    s.w:rectangle(s.szw-s.fszb/2+1-width-5, 3*s.fszb/2+s.yoffset-3-height, width+5, height, 'AlignRight')
                     s.w:fill()
-                    s.w:setcolor(1, 0, 0)
-                    s.w:moveto(s.szw-s.fszb/2+1-width, 3*s.fszb/2+s.yoffset-3)
+                    s.w:setcolor(0.7, 0.2, 0)
+                    s.w:moveto(s.szw-s.fszb/2+1-width-5, 3*s.fszb/2+s.yoffset-3)
                     s.w:show(str)
+                    s.w:gend()
                  end)
-      self.timer:start(1000)
+      s.timer:start(1000)
    end
 end
 
@@ -312,6 +315,11 @@ function Slides:fromhtml(htmlfile)
    local allslides = io.open(htmlfile):read('*all')
    local pagenumber = 1
    allslides:gsub('<!\-\-.-\-\->','')
+   local time = allslides:gmatch('<time>(.*)</time>')()
+   if time then 
+      allslides:gsub('<time>(.*)</time>','')
+      self.remainingTime = tonumber(time) 
+   end
    local template = '%s*<title>(.-)</title>'
    template = template .. '%s*<transition>(.-)</transition>'
    template = template .. '%s*<align>(.-)</align>'
