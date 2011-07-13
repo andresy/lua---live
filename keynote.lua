@@ -19,8 +19,14 @@ function Slides:__init(slides, css, title, width, height)
    self.fszb = self.szh/600*28
    self.yoffset = self.szh/600*10
 
+   if sys.filep(css) then
+      css = io.open(css):read('*all')
+   else
+      css = self.default_css
+   end
+
    self.w = qtwidget.newwindow(self.szw, self.szh, self.title)
-   self.w:setstylesheet(io.open(css):read('*all'))
+   self.w:setstylesheet(css)
    self.slides = {}
    self.currentY = 3*self.fszn
    self.consoleText = ""
@@ -348,6 +354,72 @@ function Slides:fromhtml(htmlfile)
       pagenumber = pagenumber + 1
    end
 end
+
+Slides.default_css = [[
+body {
+        font-family: sans-serif;
+        font-weight: 100;
+	background: #FFFFFF;
+	color: #000000;
+	background: #FFFFFF;
+}
+
+a:link {
+	text-decoration: none;
+}
+
+h1 {
+	font-size: 120%;
+	color: #334d55;
+	border-bottom: 1px #ccc solid;
+	padding-bottom: 0;
+	margin-bottom: 1em;
+}
+
+h2 {
+	font-size: 120%;
+	color: #334d55;
+	border-bottom: 1px #ccc dashed;
+        border-style: dashed;
+	padding-bottom: 0;
+	margin-bottom: 1em;
+}
+
+h3 {
+	font-size: 100%;
+	color: #334d55;
+	border-bottom: 1px #ccc dashed;
+	padding-bottom: 0;
+	margin-bottom: 1em;	
+}
+
+pre {
+	display: block;
+	background-color:#FBF7F3;
+	color:#000000;
+	border-top-width:1px;
+	border-top-color: #D3D3D3;
+	border-top-style: solid;
+	border-bottom-width:1px;
+	border-bottom-color: #D3D3D3;
+	border-bottom-style: solid;
+	margin-bottom: 10px;
+	padding-left: 10px;
+	padding-right: 0px;
+	font-size:100%;
+        overflow: auto;
+	}
+
+#cool {
+	background:#DFFFD2;
+	border-top-width: 1px;
+	border-bottom-width: 1px;
+	border-top-style: solid;
+	border-bottom-style: solid;
+	border-top-color: #009900;
+	border-bottom-color: #009900;
+}
+]]
 
 local autokeynote
 for file in sys.files('.') do
