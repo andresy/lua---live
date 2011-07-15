@@ -107,10 +107,8 @@ function Present:print(text, options, moveon)
    options = options or 'TextRich|AlignVCenter'
    w:setfontsize(self.fszn)
    w:setcolor(0, 0, 0)
-   --   print('Y: ', self.currentY)
    w:show                (text, self.fszb, self.currentY, self.szw-2*self.fszb+1, self.szh-3*self.fszn-self.currentY, options)
    local z = w:stringrect(text, self.fszb, self.currentY, self.szw-2*self.fszb+1, self.szh-3*self.fszn-self.currentY, options)
-   --   print('HEIGHT', z:totable().height, z:totable().width)
    if moveon == nil or moveon then
       self.currentY = self.currentY + z:totable().height
    end
@@ -134,10 +132,10 @@ function Present.displaytimer(s,remainingmins)
                     local height = s.w:stringrect(str):totable().height
                     s.w:gbegin()
                     s.w:setcolor(1, 1, 1)
-                    s.w:rectangle(s.szw-s.fszb/2+1-width-5, 3*s.fszb/2+s.yoffset-3-height, width+5, height, 'AlignRight')
+                    s.w:rectangle(s.szw-s.fszb/2+1-width-5, 3*s.fszb/2+s.yoffset-10-height, width+3, height+3, 'AlignRight')
                     s.w:fill()
                     s.w:setcolor(0.7, 0.2, 0)
-                    s.w:moveto(s.szw-s.fszb/2+1-width-5, 3*s.fszb/2+s.yoffset-3)
+                    s.w:moveto(s.szw-s.fszb/2+1-width-5, 3*s.fszb/2+s.yoffset-10)
                     s.w:show(str)
                     s.w:gend()
                  end)
