@@ -6,13 +6,22 @@ require 'torch'
 require 'random'
 require 'qtwidget'
 
-local Slides = torch.class('torch.Keynote')
+local Present = torch.class('torch.Present')
 
-function Slides:__init(slides, css, title, width, height)
+function Present:__init(slides, css, title, width, height)
    self.html = slides or error('please provide html file (slides content)')
-   self.title = title or 'torch.Keynote'
-   self.szw = width or 800
-   self.szh = width or 600
+   self.title = title or 'torch.Present'
+
+   local allslides = io.open(self.html):read('*all')
+   local parsed_width, parsed_height = allslides:gmatch('<geometry>(.-)x(.-)</geometry>')()
+   if parsed_width or parsed_height then 
+      parsed_width = tonumber(parsed_width)
+      parsed_height = tonumber(parsed_height)
+      allslides = allslides:gsub('<geometry>(.*)x(.*)</geometry>','')
+   end
+
+   self.szw = width or parsed_width or 800
+   self.szh = width or parsed_height or 600
 
    self.fszs = self.szh/600*14
    self.fszn = self.szh/600*18
@@ -41,19 +50,19 @@ function Slides:__init(slides, css, title, width, height)
                  self:display(self.position)
               end)
 
-   self:fromhtml(self.html)
+   self:fromhtml(allslides)
    if self.remainingTime then self:displaytimer(self.remainingTime) end
 end
 
-function Slides:addSlide(slide)
+function Present:addSlide(slide)
    table.insert(self.slides, slide)
 end
 
-function Slides:consoleClear()
+function Present:consoleClear()
    self.consoleText = ""
 end
 
-function Slides:console(text)
+function Present:console(text)
    text = text .. '\n'
    local w = self.w
    local options = 'TextRich|AlignTop'
@@ -87,7 +96,7 @@ function Slides:console(text)
    end
 end
 
-function Slides:print(text, options, moveon)
+function Present:print(text, options, moveon)
    local w = self.w
    options = options or 'TextRich|AlignVCenter'
    w:setfontsize(self.fszn)
@@ -101,7 +110,7 @@ function Slides:print(text, options, moveon)
    end
 end
 
-function Slides.displaytimer(s,remainingmins)
+function Present.displaytimer(s,remainingmins)
    if not s.timer then
       s.timer = qt.QTimer()
       local remainingtime = (remainingmins or 20)*60+1
@@ -130,7 +139,7 @@ function Slides.displaytimer(s,remainingmins)
    end
 end
 
-function Slides:display(index)
+function Present:display(index)
    self.currentY = 3*self.fszn
    local w = self.w
    local slide = self.slides[index]
@@ -186,7 +195,7 @@ function Slides:display(index)
    end
 end
 
-function Slides:transition(index, transition)
+function Present:transition(index, transition)
    if not transition or not self.slides[index].transition or self.slides[index].transition == 0 then
       self:display(index)
       return
@@ -232,7 +241,7 @@ function Slides:transition(index, transition)
    self.fancytimer:start(25)
 end
 
-function Slides:show(startindex)
+function Present:show(startindex)
    self:display(startindex or 1)
 
    local w = self.w
@@ -309,7 +318,7 @@ function Slides:show(startindex)
               end, true)
 
    print [[
-<keynote started>
+<presentation started>
   + press [->]: display next slide
   + press [<-]: display previous slide
   + press [i]: run interactive Lua code, if available
@@ -317,13 +326,12 @@ function Slides:show(startindex)
   + press [q]: quit ]]
 end
 
-function Slides:fromhtml(htmlfile)
-   local allslides = io.open(htmlfile):read('*all')
+function Present:fromhtml(allslides)
    local pagenumber = 1
    allslides:gsub('<!\-\-.-\-\->','')
    local time = allslides:gmatch('<time>(.*)</time>')()
    if time then 
-      allslides:gsub('<time>(.*)</time>','')
+      allslides = allslides:gsub('<time>(.*)</time>','')
       self.remainingTime = tonumber(time) 
    end
    local template = '%s*<title>(.-)</title>'
@@ -355,7 +363,7 @@ function Slides:fromhtml(htmlfile)
    end
 end
 
-Slides.default_css = [[
+Present.default_css = [[
 body {
         font-family: sans-serif;
         font-weight: 100;
@@ -421,15 +429,15 @@ pre {
 }
 ]]
 
-local autokeynote
+local autopresent
 for file in sys.files('.') do
    if file:find('.html') then
       local html = file
       local css = file:gsub('.html','.css')
       local title = file:gsub('.html','')
-      autokeynote = torch.Keynote(html, css, title)
-      autokeynote:show()
-      keynote = autokeynote
+      autopresent = torch.Present(html, css, title)
+      autopresent:show()
+      present = autopresent
       break
    end
 end

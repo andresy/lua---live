@@ -1,13 +1,13 @@
 
-package = "keynote"
+package = "present"
 version = "1.0-1"
 
 source = {
-   url = "keynote-1.0-1.tgz"
+   url = "present-1.0-1.tgz"
 }
 
 description = {
-   summary = "Provides a simple class to create interactive keynote/presentations.",
+   summary = "Provides a simple class to create interactive presentations.",
    detailed = [[
             A really cool package to generate simple yet interactive
             slides.
@@ -25,6 +25,6 @@ dependencies = {
 build = {
    type = "builtin",
    modules = {
-      keynote = "keynote.lua"
+      present = "present.lua"
    }
 }
