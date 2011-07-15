@@ -23,6 +23,12 @@ function Present:__init(slides, css, title, width, height)
    self.szw = width or parsed_width or 800
    self.szh = width or parsed_height or 600
 
+   local time = allslides:gmatch('<time>(.*)</time>')()
+   if time then 
+      allslides = allslides:gsub('<time>(.*)</time>','')
+      self.remainingTime = tonumber(time) 
+   end
+
    self.fszs = self.szh/600*14
    self.fszn = self.szh/600*18
    self.fszb = self.szh/600*28
@@ -329,11 +335,6 @@ end
 function Present:fromhtml(allslides)
    local pagenumber = 1
    allslides:gsub('<!\-\-.-\-\->','')
-   local time = allslides:gmatch('<time>(.*)</time>')()
-   if time then 
-      allslides = allslides:gsub('<time>(.*)</time>','')
-      self.remainingTime = tonumber(time) 
-   end
    local template = '%s*<title>(.-)</title>'
    template = template .. '%s*<transition>(.-)</transition>'
    template = template .. '%s*<align>(.-)</align>'
