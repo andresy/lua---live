@@ -166,6 +166,69 @@ function Live:console(text)
    end
 end
 
+function Live:consoleEval(cmd)
+   -- make sure cmd finishes with return
+   cmd = cmd .. '\n'
+
+   local w = self.w
+   local options = 'TextRich|AlignTop'
+   local line, height
+   w:setfontsize(self.fszs)
+   while true do
+      w:gbegin()
+      w:setcolor(0, 0.8, 0)
+      w:rectangle(self.fszb, self.currentY+10, self.szw-2*self.fszb+1, self.szh-15*self.fszn-self.currentY)
+      w:stroke()
+      w:setcolor("#F9F7F3")
+      w:rectangle(self.fszb, self.currentY+10, self.szw-2*self.fszb+1, self.szh-15*self.fszn-self.currentY)
+      w:fill()
+
+      local li = 0
+      for line in string.gmatch(self.consoleText, '(.-)\n') do
+         if line:sub(1,1) == '>' then
+            w:setcolor(0,0,0)
+         else
+            w:setcolor(0.7,0.6,0.5)
+         end
+         w:show('<pre>' .. line .. '</pre>', self.fszb, self.currentY+10+li*self.fszn, self.szw-2*self.fszb+1, self.szh-15*self.fszn-self.currentY, options)
+         li = li + 1
+      end
+      w:gend()
+
+      -- get next line
+      line, cmd = string.match(cmd, '(.-\n)(.+)')
+      if not line then
+         break
+      end
+
+      -- override print function to reroute stdout to console
+      local result = ''
+      local print = _G.print
+      _G.print = function(sym) result = result .. tostring(sym) end
+
+      -- then exec new line
+      loadstring(line)()
+
+      -- restore print
+      _G.print = print
+
+      -- print command, and result
+      self.consoleText = self.consoleText .. '> ' .. line
+      if result ~= '' then
+         self.consoleText = self.consoleText .. result .. '\n'
+      end
+
+      while true do
+         local height = w:stringrect('<pre>' .. self.consoleText .. '</pre>', self.fszb, self.currentY+10, self.szw-2*self.fszb+1, self.szh-15*self.fszn-self.currentY, options):totable().height
+         print(height, self.szh-3*self.fszn-self.currentY)
+         if height < self.szh-17*self.fszn-self.currentY then
+            break
+         end
+         self.consoleText = string.match(self.consoleText, '.-\n(.+)')
+      end
+   end
+end
+
 function Live:print(text, options, moveon)
    local w = self.w
    options = options or 'TextRich|AlignVCenter'
@@ -325,7 +388,6 @@ function Live:show(startindex)
    qt.connect(w.listener, 'sigKeyPress(QString,QByteArray,QByteArray)',
               function(bof, key, modifier)
                  if not release then return end
-                 --                 print(key)
                  release = false
                  if key == 'Key_Q' then
                     os.exit()
@@ -438,7 +500,6 @@ h3 {
 pre {
 	display: block;
 	background-color:#FBF7F3;
-	color:#000000;
 	border-top-width:1px;
 	border-top-color: #D3D3D3;
 	border-top-style: solid;

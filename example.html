@@ -100,27 +100,53 @@
     Interactive demo (press <font color=red>i</font>)
   </body>
   <lua>
-local code = {}
-
-code[1] = [[
+local code = {
+[[
 require 'image'
+]]
+,
+[[
 lena = image.lena()
-image.display{image=lena, win=win, zoom=0.5, x=width-300, y=height-320}
+print(#lena)
 ]]
-
-code[2] = [[
+,
+[[
+image.display{image=lena, win=win, zoom=0.4, x=width-300, y=height-320}
+]]
+,
+[[
 lena = image.rgb2y(lena)
-image.display{image=lena, win=win, zoom=0.5, x=width-300, y=height-320}
+image.display{image=lena, win=win, zoom=0.4, x=width-300-lena:size(3)*0.4, y=height-320}
 ]]
+,
+[[
+require 'imgraph'
+]]
+,
+[[
+lenag = image.convolve(lena, image.gaussian(3), 'full')
+graph = imgraph.graph(lenag,8)
+segm,ncomps = imgraph.segmentmst(graph,3)
+print(ncomps .. ' components found')
+]]
+,
+[[
+image.display{image=segm, win=win, zoom=0.4, x=width-300-2*lena:size(3)*0.4, y=height-320}
+]]
+,
+[[
+color = imgraph.colorize(segm)
+image.display{image=color, win=win, zoom=0.4, x=width-300-3*lena:size(3)*0.4, y=height-320}
+]]
+}
 
 function __interaction__(self,it)
-if it == 1 then self:consoleClear() end
-if not code[it] then return end
-self:console(code[it])
-win = self.w
-width = self.szw
-height = self.szh
-loadstring(code[it])()
+   if it == 1 then self:consoleClear() end
+   if not code[it] then return end
+   win = self.w
+   width = self.szw
+   height = self.szh
+   self:consoleEval(code[it])
 end
   </lua>
 </slide>
