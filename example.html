@@ -1,73 +1,77 @@
-
+<!-------------------------------------------------------------------------->
+<geometry>1024x768</geometry>
 <time>20</time>
 
 <!-------------------------------------------------------------------------->
-<title>Torch7: Machine Learning Library</title>
-<transition>none</transition>
-<align>center</align>
-<body>
-  <h3><b>Torch</b> has been around since 2000</h3>
-  <ul>
-    <li>4 versions</li>
-    <li>Various languages: C, C++, Objective C</li>
-    <li>Includes <font color=red>main</font> machine-learning <font color=red>algorithms</font>: SVMs, NNs, HMMs, GMMs...</li>
-    <li><font color=red>BSD</font> License</li>
-    <li>More than 50,000 downloads, many users including universities</li>
-  </ul>
-  <p><p>
-<div id=cool>
-  <h3><b>Torch</b> always aimed <font color=red>large-scale learning</font></h3>
-  <ul>
-    <li>Speech and image processing research and applications</li>
-    <li>Large-scale machine-learning research</li>
-  </ul>
-</div>
-</body>
-
+<slide>
+  <title>Torch7: Machine Learning Library</title>
+  <transition>none</transition>
+  <align>center</align>
+  <body>
+    <h3><b>Torch</b> has been around since 2000</h3>
+    <ul>
+      <li>4 versions</li>
+      <li>Various languages: C, C++, Objective C</li>
+      <li>Includes <font color=red>main</font> machine-learning <font color=red>algorithms</font>: SVMs, NNs, HMMs, GMMs...</li>
+      <li><font color=red>BSD</font> License</li>
+      <li>More than 50,000 downloads, many users including universities</li>
+    </ul>
+    <p><p>
+      <div id=cool>
+        <h3><b>Torch</b> always aimed <font color=red>large-scale learning</font></h3>
+        <ul>
+          <li>Speech and image processing research and applications</li>
+          <li>Large-scale machine-learning research</li>
+        </ul>
+      </div>
+  </body>
+</slide>
 
 <!-------------------------------------------------------------------------->
-<title>Torch7: Large-Scale Machine Learning</title>
-<transition>none</transition>
-<align>center</align>
-<body>
-  <h3>Large-scale learning problems</h3>
-  <ul>
-    <li>Developement of <font color=red>complex systems</red></li>
-    <li><font color=red>Fast algorithms</font> and <font color=red>optimized</font> implementations</li>
-  </ul>
-  <p>
-  <h3>Why not using <font color=blue>Matlab</font>?</h3>
-  <ul>
-    <li>The good side:
+<slide>
+  <title>Torch7: Large-Scale Machine Learning</title>
+  <transition>none</transition>
+  <align>center</align>
+  <body>
+    <h3>Large-scale learning problems</h3>
     <ul>
-      <li> <font color=red>Fast simple language</font>, with just-in-time-compiler</li>
-      <li> <font color=red>Excellent linear</font> algebra toolbox</li>
+      <li>Developement of <font color=red>complex systems</font></li>
+      <li><font color=red>Fast algorithms</font> and <font color=red>optimized</font> implementations</li>
     </ul>
-    </li>
     <p>
-    <li>The bad side:
-    <ul>
-      <li>Does not scale: <font color=red>copies</font> everything</li>
-      <li>Not as powerful a true <font color=red>scripting language</font></li>
-    </ul>
-    </li>
-  </ul>
-  <p>
-  <h3>Ideal solution:</h3>
-  <ul>
-    <li><font color=red>Powerful interpreted scripting language as fast as C</font></li>
-    <li><font color=red>Well-designed linear algebra library</font></li>
-  </ul>
-</body>
-
+      <h3>Why not using <font color=blue>Matlab</font>?</h3>
+      <ul>
+        <li>The good side:
+          <ul>
+            <li> <font color=red>Fast simple language</font>, with just-in-time-compiler</li>
+            <li> <font color=red>Excellent linear</font> algebra toolbox</li>
+          </ul>
+        </li>
+        <p>
+          <li>The bad side:
+            <ul>
+              <li>Does not scale: <font color=red>copies</font> everything</li>
+              <li>Not as powerful a true <font color=red>scripting language</font></li>
+            </ul>
+          </li>
+      </ul>
+    <p>
+      <h3>Ideal solution:</h3>
+      <ul>
+        <li><font color=red>Powerful interpreted scripting language as fast as C</font></li>
+        <li><font color=red>Well-designed linear algebra library</font></li>
+      </ul>
+  </body>
+</slide>
 
 <!-------------------------------------------------------------------------->
-<title>Lua</title>
-<transition>none</transition>
-<align>center</align>
-<body>
-  <h3>Interpreted scripting language</h3>
-  <h3>Dynamically typed. Available types:</h3>
+<slide>
+  <title>Lua</title>
+  <transition>none</transition>
+  <align>center</align>
+  <body>
+    <h3>Interpreted scripting language</h3>
+    <h3>Dynamically typed. Available types:</h3>
     <ul>
       <li>nil</li>
       <li>boolean (true, false)</li>
@@ -78,22 +82,24 @@
       <li><font color=red>table</font> (hashtable)</li>
       <li><font color=red>userdata</font></li>
     </ul>
-  <h3>Keywords</h3>
-<pre>     and       break     do        else      elseif
-     end       false     for       function  if
-     in        local     nil       not       or
-     repeat    return    then      true      until     while
-</pre>
-</body>
-
+    <h3>Keywords</h3>
+    <pre>      and       break     do        else      elseif
+      end       false     for       function  if
+      in        local     nil       not       or
+      repeat    return    then      true      until     while
+    </pre>
+  </body>
+</slide>
 
 <!-------------------------------------------------------------------------->
-<title>In practice...</title>
-<transition>none</transition>
-<align>center</align>
-<body>
-Interactive demo (press <font color=red>i</font>)
-<lua>
+<slide>
+  <title>In practice...</title>
+  <transition>none</transition>
+  <align>center</align>
+  <body>
+    Interactive demo (press <font color=red>i</font>)
+  </body>
+  <lua>
 local code = {}
 
 code[1] = [[
@@ -116,5 +122,5 @@ width = self.szw
 height = self.szh
 loadstring(code[it])()
 end
-</lua>
-</body>
+  </lua>
+</slide>

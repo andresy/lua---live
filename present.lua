@@ -1,52 +1,62 @@
-#!/usr/bin/env qlua
+----------------------------------------------------------------------
+-- description:
+--     torch.Present - a class to produce presentations
+-- 
+-- how to use:
+--     create your slides in a single html file, then simply run:
+--     $ qlua -lpresent
+--     in the same directory.
+----------------------------------------------------------------------
 
 require 'lab'
 require 'torch'
 require 'random'
 require 'qtwidget'
 
+----------------------------------------------------------------------
+-- a helper function to parse xml tags
+--
+local function getnexttag(xml,tag)
+   local pattern = '<'..tag..'>(.*)</'..tag..'>'
+   local match = xml:gmatch(pattern)()
+   if match then
+      xml = xml:gsub(pattern,'')
+      return xml,match
+   end
+   return xml,''
+end
+
+----------------------------------------------------------------------
+-- torch.Present: class definition
+--
 local Present = torch.class('torch.Present')
 
 function Present:__init(slides, css, title, width, height)
+   -- get arguments
    self.html = slides or error('please provide html file (slides content)')
    self.title = title or 'torch.Present'
 
-   local allslides = io.open(self.html):read('*all')
-   local parsed_width, parsed_height = allslides:gmatch('<geometry>(.-)x(.-)</geometry>')()
-   if parsed_width or parsed_height then 
-      parsed_width = tonumber(parsed_width)
-      parsed_height = tonumber(parsed_height)
-      allslides = allslides:gsub('<geometry>(.*)x(.*)</geometry>','')
-   end
+   -- parse html to create all slides
+   self.slides = {}
+   self:fromhtml(io.open(self.html):read('*all'))
 
-   self.szw = width or parsed_width or 800
-   self.szh = width or parsed_height or 600
+   -- if no CSS provided, then use default
+   if paths.filep(css) then css = io.open(css):read('*all')
+   else css = self.default_css end
 
-   local time = allslides:gmatch('<time>(.*)</time>')()
-   if time then 
-      allslides = allslides:gsub('<time>(.*)</time>','')
-      self.remainingTime = tonumber(time) 
-   end
-
+   -- internal geometry params
    self.fszs = self.szh/600*14
    self.fszn = self.szh/600*18
    self.fszb = self.szh/600*28
    self.yoffset = self.szh/600*10
 
-   if paths.filep(css) then
-      css = io.open(css):read('*all')
-   else
-      css = self.default_css
-   end
-
+   -- create window and the likes
    self.w = qtwidget.newwindow(self.szw, self.szh, self.title)
    self.w:setstylesheet(css)
-   self.slides = {}
    self.currentY = 3*self.fszn
    self.consoleText = ""
    self.position = 1
    self.w:gsave()
-
    qt.connect(self.w.listener, 'sigResize(int,int)',
               function(width, height)
                  self.w:grestore()
@@ -55,8 +65,63 @@ function Present:__init(slides, css, title, width, height)
                  self:display(self.position)
               end)
 
-   self:fromhtml(allslides)
+   -- setup timer if 'time' tag was provided
    if self.remainingTime then self:displaytimer(self.remainingTime) end
+end
+
+----------------------------------------------------------------------
+-- this is the main parser
+--
+function Present:fromhtml(allslides)
+   -- filter out html comments:
+   allslides:gsub('<!\-\-.-\-\->','')
+
+   -- try to get geometry, if not defined, default to SVGA
+   local geometry
+   allslides,geometry = getnexttag(allslides,'geometry')
+   local parsed_width, parsed_height = geometry:gmatch('(.*)x(.*)')()
+   if parsed_width or parsed_height then 
+      parsed_width = tonumber(parsed_width)
+      parsed_height = tonumber(parsed_height)
+   end
+   self.szw = width or parsed_width or 800
+   self.szh = width or parsed_height or 600
+
+   -- try to get time tag
+   allslides,self.remainingTime = getnexttag(allslides,'time')
+   if self.remainingTime then self.remainingTime = tonumber(self.remainingTime) end
+
+   -- process slides one by one:
+   local oneslide = '%s*<slide>(.-)</slide>'
+   local pagenumber = 1
+   for slide in string.gmatch(allslides, oneslide) do
+
+      -- try to extract title, transition style, align style, and body
+      local title, transition, align, interaction
+      slide,title = getnexttag(slide, 'title')
+      slide,transition = getnexttag(slide, 'transition')
+      slide,align = getnexttag(slide, 'align')
+      slide,interaction = getnexttag(slide, 'lua')
+
+      -- align style:
+      if align == 'center' then align = 'TextRich|AlignVCenter'
+      elseif align == 'bottom' then align = 'TextRich|AlignBottom'
+      elseif align == 'top' then align = 'TextRich|AlignTop'
+      else align = 'TextRich|AlignVCenter' end
+
+      -- transition style:
+      if transition == 'none' then transition = 0
+      elseif transition == 'open' then transition = 1
+      elseif transition == 'zoomin' then transition = 2
+      elseif transition == 'flip' then transition = 3
+      elseif transition == 'shake' then transition = 4
+      else transition = 0 end
+
+      -- insert slide:
+      self:addSlide{title=title, footright=pagenumber, text=slide, 
+                    interaction=interaction, valign=align, transition=transition}
+      pagenumber = pagenumber + 1
+   end
 end
 
 function Present:addSlide(slide)
@@ -106,7 +171,7 @@ function Present:print(text, options, moveon)
    options = options or 'TextRich|AlignVCenter'
    w:setfontsize(self.fszn)
    w:setcolor(0, 0, 0)
-   w:show                (text, self.fszb, self.currentY, self.szw-2*self.fszb+1, self.szh-3*self.fszn-self.currentY, options)
+   w:show(text, self.fszb, self.currentY, self.szw-2*self.fszb+1, self.szh-3*self.fszn-self.currentY, options)
    local z = w:stringrect(text, self.fszb, self.currentY, self.szw-2*self.fszb+1, self.szh-3*self.fszn-self.currentY, options)
    if moveon == nil or moveon then
       self.currentY = self.currentY + z:totable().height
@@ -329,38 +394,9 @@ function Present:show(startindex)
   + press [q]: quit ]]
 end
 
-function Present:fromhtml(allslides)
-   local pagenumber = 1
-   allslides:gsub('<!\-\-.-\-\->','')
-   local template = '%s*<title>(.-)</title>'
-   template = template .. '%s*<transition>(.-)</transition>'
-   template = template .. '%s*<align>(.-)</align>'
-   template = template .. '%s*(%<body%>.-%<%/body%>)'
-   for title, transition, valign, txt in string.gmatch(allslides, template) do
-      local align
-      if valign == 'center' then
-         align = 'TextRich|AlignVCenter'
-      elseif valign == 'bottom' then
-         align = 'TextRich|AlignBottom'
-      elseif valign == 'top' then
-         align = 'TextRich|AlignTop'
-      end
-      local interaction = string.match(txt, "<lua>(.*)</lua>")
-      if interaction then
-         txt = string.gsub(txt, "<lua>.*</lua>", "")
-      end
-      if transition == 'none' then transition = 0
-      elseif transition == 'open' then transition = 1
-      elseif transition == 'zoomin' then transition = 2
-      elseif transition == 'flip' then transition = 3
-      elseif transition == 'shake' then transition = 4
-      else transition = tonumber(transition)
-      end
-      self:addSlide{title=title, footright=pagenumber, text=txt, interaction=interaction, valign=align, transition=transition}
-      pagenumber = pagenumber + 1
-   end
-end
-
+----------------------------------------------------------------------
+-- a default CSS
+--
 Present.default_css = [[
 body {
         font-family: sans-serif;
@@ -427,6 +463,11 @@ pre {
 }
 ]]
 
+----------------------------------------------------------------------
+-- this bit of code automatically tries to load and html file
+-- in the current directory, when loading this module.
+-- if not html is found, then the module is loaded silently.
+--
 local autopresent
 local htmlfiles = {}
 for file in paths.files('.') do
