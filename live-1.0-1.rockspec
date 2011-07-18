@@ -1,9 +1,9 @@
 
-package = "present"
+package = "live"
 version = "1.0-1"
 
 source = {
-   url = "present-1.0-1.tgz"
+   url = "live-1.0-1.tgz"
 }
 
 description = {
@@ -24,6 +24,6 @@ dependencies = {
 build = {
    type = "builtin",
    modules = {
-      present = "present.lua"
+      live = "live.lua"
    }
 }

@@ -1,6 +1,6 @@
 ----------------------------------------------------------------------
 -- description:
---     torch.Present - a class to produce presentations
+--     torch.Live - a class to produce interactive presentations
 -- 
 -- how to use:
 --     create your slides in a single html file, then simply run:
@@ -27,14 +27,14 @@ local function getnexttag(xml,tag)
 end
 
 ----------------------------------------------------------------------
--- torch.Present: class definition
+-- torch.Live: class definition
 --
-local Present = torch.class('torch.Present')
+local Live = torch.class('torch.Live')
 
-function Present:__init(slides, css, title, width, height)
+function Live:__init(slides, css, title, width, height)
    -- get arguments
    self.html = slides or error('please provide html file (slides content)')
-   self.title = title or 'torch.Present'
+   self.title = title or 'torch.Live'
 
    -- parse html to create all slides
    self.slides = {}
@@ -72,7 +72,7 @@ end
 ----------------------------------------------------------------------
 -- this is the main parser
 --
-function Present:fromhtml(allslides)
+function Live:fromhtml(allslides)
    -- filter out html comments:
    allslides:gsub('<!\-\-.-\-\->','')
 
@@ -124,15 +124,15 @@ function Present:fromhtml(allslides)
    end
 end
 
-function Present:addSlide(slide)
+function Live:addSlide(slide)
    table.insert(self.slides, slide)
 end
 
-function Present:consoleClear()
+function Live:consoleClear()
    self.consoleText = ""
 end
 
-function Present:console(text)
+function Live:console(text)
    text = text .. '\n'
    local w = self.w
    local options = 'TextRich|AlignTop'
@@ -166,7 +166,7 @@ function Present:console(text)
    end
 end
 
-function Present:print(text, options, moveon)
+function Live:print(text, options, moveon)
    local w = self.w
    options = options or 'TextRich|AlignVCenter'
    w:setfontsize(self.fszn)
@@ -178,7 +178,7 @@ function Present:print(text, options, moveon)
    end
 end
 
-function Present.displaytimer(s,remainingmins)
+function Live.displaytimer(s,remainingmins)
    if not s.timer then
       s.timer = qt.QTimer()
       local remainingtime = (remainingmins or 20)*60+1
@@ -207,7 +207,7 @@ function Present.displaytimer(s,remainingmins)
    end
 end
 
-function Present:display(index)
+function Live:display(index)
    self.currentY = 3*self.fszn
    local w = self.w
    local slide = self.slides[index]
@@ -263,7 +263,7 @@ function Present:display(index)
    end
 end
 
-function Present:transition(index, transition)
+function Live:transition(index, transition)
    if not transition or not self.slides[index].transition or self.slides[index].transition == 0 then
       self:display(index)
       return
@@ -309,7 +309,7 @@ function Present:transition(index, transition)
    self.fancytimer:start(25)
 end
 
-function Present:show(startindex)
+function Live:show(startindex)
    self:display(startindex or 1)
 
    local w = self.w
@@ -397,7 +397,7 @@ end
 ----------------------------------------------------------------------
 -- a default CSS
 --
-Present.default_css = [[
+Live.default_css = [[
 body {
         font-family: sans-serif;
         font-weight: 100;
@@ -478,7 +478,7 @@ end
 if #htmlfiles == 1 then
    html = htmlfiles[1]
 elseif #htmlfiles > 1 then
-   print('<torch.Present> found ' .. (#htmlfiles) .. ' presentations, please select one:')
+   print('<torch.Live> found ' .. (#htmlfiles) .. ' presentations, please select one:')
    io.write('(0) none/abort\t')
    for i,file in ipairs(htmlfiles) do
       io.write('('..i..') ' .. file .. '\t')
@@ -490,7 +490,7 @@ end
 if html then
    local css = html:gsub('.html','.css')
    local title = html:gsub('.html','')
-   autopresent = torch.Present(html, css, title)
+   autopresent = torch.Live(html, css, title)
    autopresent:show()
    present = autopresent
 end
