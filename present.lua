@@ -1,7 +1,6 @@
 #!/usr/bin/env qlua
 
 require 'lab'
-require 'xlua'
 require 'torch'
 require 'random'
 require 'qtwidget'
@@ -34,7 +33,7 @@ function Present:__init(slides, css, title, width, height)
    self.fszb = self.szh/600*28
    self.yoffset = self.szh/600*10
 
-   if sys.filep(css) then
+   if paths.filep(css) then
       css = io.open(css):read('*all')
    else
       css = self.default_css
@@ -429,14 +428,28 @@ pre {
 ]]
 
 local autopresent
-for file in sys.files('.') do
+local htmlfiles = {}
+for file in paths.files('.') do
    if file:find('.html') then
-      local html = file
-      local css = file:gsub('.html','.css')
-      local title = file:gsub('.html','')
-      autopresent = torch.Present(html, css, title)
-      autopresent:show()
-      present = autopresent
-      break
+      table.insert(htmlfiles, file)
    end
+end
+if #htmlfiles == 1 then
+   html = htmlfiles[1]
+elseif #htmlfiles > 1 then
+   print('<torch.Present> found ' .. (#htmlfiles) .. ' presentations, please select one:')
+   io.write('(0) none/abort\t')
+   for i,file in ipairs(htmlfiles) do
+      io.write('('..i..') ' .. file .. '\t')
+   end
+   io.write('\n> ')
+   local choice = io.read()
+   html = htmlfiles[tonumber(choice)]
+end
+if html then
+   local css = html:gsub('.html','.css')
+   local title = html:gsub('.html','')
+   autopresent = torch.Present(html, css, title)
+   autopresent:show()
+   present = autopresent
 end
