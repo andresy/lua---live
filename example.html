@@ -4,97 +4,54 @@
 
 <!-------------------------------------------------------------------------->
 <slide>
-  <title>Torch7: Machine Learning Library</title>
+  <title>torch.Live()</title>
   <transition>none</transition>
   <align>center</align>
   <body>
-    <h3><b>Torch</b> has been around since 2000</h3>
+    <h3>a simple class that allows you to build
+    interactive presentations</h3>
     <ul>
-      <li>4 versions</li>
-      <li>Various languages: C, C++, Objective C</li>
-      <li>Includes <font color=red>main</font> machine-learning <font color=red>algorithms</font>: SVMs, NNs, HMMs, GMMs...</li>
-      <li><font color=red>BSD</font> License</li>
-      <li>More than 50,000 downloads, many users including universities</li>
+      <li>the content is written in a simple <font color=red>HTML</font> file</li>
+      <li>the style can be defined using a standard <font color=blue>CSS</font> file</li>
+      <li>Lua code, and therefore any regular Lua program can be
+      embedded in the html file</li>
     </ul>
-    <p><p>
-      <div id=cool>
-        <h3><b>Torch</b> always aimed <font color=red>large-scale learning</font></h3>
-        <ul>
-          <li>Speech and image processing research and applications</li>
-          <li>Large-scale machine-learning research</li>
-        </ul>
-      </div>
   </body>
 </slide>
 
 <!-------------------------------------------------------------------------->
 <slide>
-  <title>Torch7: Large-Scale Machine Learning</title>
-  <transition>none</transition>
+  <title>torch.Live()</title>
+  <transition>shake</transition>
   <align>center</align>
   <body>
-    <h3>Large-scale learning problems</h3>
-    <ul>
-      <li>Developement of <font color=red>complex systems</font></li>
-      <li><font color=red>Fast algorithms</font> and <font color=red>optimized</font> implementations</li>
-    </ul>
-    <p>
-      <h3>Why not using <font color=blue>Matlab</font>?</h3>
-      <ul>
-        <li>The good side:
-          <ul>
-            <li> <font color=red>Fast simple language</font>, with just-in-time-compiler</li>
-            <li> <font color=red>Excellent linear</font> algebra toolbox</li>
-          </ul>
-        </li>
-        <p>
-          <li>The bad side:
-            <ul>
-              <li>Does not scale: <font color=red>copies</font> everything</li>
-              <li>Not as powerful a true <font color=red>scripting language</font></li>
-            </ul>
-          </li>
-      </ul>
-    <p>
-      <h3>Ideal solution:</h3>
-      <ul>
-        <li><font color=red>Powerful interpreted scripting language as fast as C</font></li>
-        <li><font color=red>Well-designed linear algebra library</font></li>
-      </ul>
-  </body>
-</slide>
-
-<!-------------------------------------------------------------------------->
-<slide>
-  <title>Lua</title>
-  <transition>none</transition>
-  <align>center</align>
-  <body>
-    <h3>Interpreted scripting language</h3>
-    <h3>Dynamically typed. Available types:</h3>
-    <ul>
-      <li>nil</li>
-      <li>boolean (true, false)</li>
-      <li>number (double)</li>
-      <li>string</li>
-      <li>function</li>
-      <li>thread</li>
-      <li><font color=red>table</font> (hashtable)</li>
-      <li><font color=red>userdata</font></li>
-    </ul>
-    <h3>Keywords</h3>
-    <pre>      and       break     do        else      elseif
-      end       false     for       function  if
-      in        local     nil       not       or
-      repeat    return    then      true      until     while
+    <h3>a simple slide</h3>
+    <p>here's the code for this slide:</p>
+    <pre>
+&lt;slide&gt;
+  &lt;title&gt;torch.Live()&lt;/title&gt;
+  &lt;transition&gt;none&lt;/transition&gt;
+  &lt;align&gt;center&lt;/align&gt;
+  &lt;body&gt;
+    &lt;h3&gt;a simple slide&lt;/h3&gt;
+    &lt;p&gt;here's the code for this slide:&lt;/p&gt;
+    &lt;pre&gt;...&lt;/pre&gt;
+    &lt;h3&gt;starting the presentation&lt;/h3&gt;
+    &lt;p&gt;to start the presentation, all you have to do is&lt;/p&gt;
+    &lt;pre&gt;$ qlua -llive&lt;/pre&gt;
+  &lt;/body&gt;
+&lt;/slide&gt;
     </pre>
+    <h3>starting the presentation</h3>
+    <p>to start the presentation, all you have to do is</p>
+    <pre>$ qlua -llive</pre>
   </body>
 </slide>
 
 <!-------------------------------------------------------------------------->
 <slide>
   <title>In practice...</title>
-  <transition>none</transition>
+  <transition>open</transition>
   <align>center</align>
   <body>
     Interactive demo (press <font color=red>i</font>)
@@ -125,8 +82,8 @@ require 'imgraph'
 ,
 [[
 lenag = image.convolve(lena, image.gaussian(3), 'full')
-graph = imgraph.graph(lenag,8)
-segm,ncomps = imgraph.segmentmst(graph,3)
+graph = imgraph.graph(lenag)
+segm,ncomps = imgraph.segmentmst(graph,2,30)
 print(ncomps .. ' components found')
 ]]
 ,
@@ -135,10 +92,15 @@ image.display{image=segm, win=win, zoom=0.4, x=width-300-2*lena:size(3)*0.4, y=h
 ]]
 ,
 [[
-color = imgraph.colorize(segm)
-image.display{image=color, win=win, zoom=0.4, x=width-300-3*lena:size(3)*0.4, y=height-320}
+histpooled = imgraph.histpooling(image.lena(),segm)
+image.display{image=histpooled, win=win, zoom=0.4, x=width-300-3*lena:size(3)*0.4, y=height-320}
 ]]
 }
+
+require 'xlua'
+if not xlua or not xrequire('image') or not xrequire('imgraph') then
+   print('warning: this interaction requires packages: image & imgraph to be installed')
+end
 
 function __interaction__(self,it)
    if it == 1 then self:consoleClear() end

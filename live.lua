@@ -218,10 +218,13 @@ function Live:consoleEval(cmd)
          self.consoleText = self.consoleText .. result .. '\n'
       end
 
+      -- discard old lines that dont fit in the console anymore
       while true do
-         local height = w:stringrect('<pre>' .. self.consoleText .. '</pre>', self.fszb, self.currentY+10, self.szw-2*self.fszb+1, self.szh-15*self.fszn-self.currentY, options):totable().height
-         print(height, self.szh-3*self.fszn-self.currentY)
-         if height < self.szh-17*self.fszn-self.currentY then
+         local li = 0
+         for line in string.gmatch(self.consoleText, '(.-)\n') do
+            li = li + 1
+         end
+         if self.currentY+10+li*self.fszn < self.szh-15*self.fszn then
             break
          end
          self.consoleText = string.match(self.consoleText, '.-\n(.+)')
