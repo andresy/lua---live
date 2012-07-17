@@ -74,7 +74,7 @@ end
 --
 function Live:fromhtml(allslides)
    -- filter out html comments:
-   allslides:gsub('<!\-\-.-\-\->','')
+   allslides:gsub('<!%-%-.-%-%->','')
 
    -- try to get geometry, if not defined, default to SVGA
    local geometry
@@ -94,14 +94,17 @@ function Live:fromhtml(allslides)
    -- process slides one by one:
    local oneslide = '%s*<slide>(.-)</slide>'
    local pagenumber = 1
+   local nlateximg = 0
    for slide in string.gmatch(allslides, oneslide) do
 
       -- try to extract title, transition style, align style, and body
-      local title, transition, align, interaction
+      local title, transition, align, interaction, luastart
       slide,title = getnexttag(slide, 'title')
       slide,transition = getnexttag(slide, 'transition')
       slide,align = getnexttag(slide, 'align')
       slide,interaction = getnexttag(slide, 'lua')
+      slide,luastart = getnexttag(slide, 'luastart')
+      slide,luaend = getnexttag(slide, 'luaend')
 
       -- align style:
       if align == 'center' then align = 'TextRich|AlignVCenter'
@@ -117,9 +120,37 @@ function Live:fromhtml(allslides)
       elseif transition == 'shake' then transition = 4
       else transition = 0 end
 
+      -- latex
+      slide = slide:gsub('<latex([^>]-)>(.-)</latex>', function(options,str)
+                                                          local rebuild = false
+                                                          str = str .. '\n'
+                                                          options = options or ''
+                                                          os.execute('mkdir -p lateximg')
+                                                          nlateximg = nlateximg + 1
+                                                          local f = io.open("lateximg/img" .. nlateximg .. ".tex")
+                                                          if f then
+                                                             local txt = f:read('*all')
+                                                             f:close()
+                                                             if txt ~= str then
+                                                                rebuild = true
+                                                             end
+                                                          else
+                                                             rebuild = true
+                                                          end
+                                                          if rebuild then
+                                                             print('converting...', str)
+                                                             local f = io.open("lateximg/img" .. nlateximg .. ".tex", "w")
+                                                             f:write(str)
+                                                             f:close()
+                                                             local cmd = "./tex2im " .. options .. " -z -a -o lateximg/img" .. nlateximg .. ".png lateximg/img" .. nlateximg .. ".tex"
+                                                             os.execute(cmd)
+                                                          end
+                                                          return '<img source="lateximg/img' .. nlateximg .. '.png"/>'
+                                                       end)
+
       -- insert slide:
       self:addSlide{title=title, footright=pagenumber, text=slide, 
-                    interaction=interaction, valign=align, transition=transition}
+                    interaction=interaction, valign=align, transition=transition, luastart=luastart, luaend=luaend}
       pagenumber = pagenumber + 1
    end
 end
@@ -196,7 +227,13 @@ function Live:consoleEval(cmd)
       w:gend()
 
       -- get next line
-      line, cmd = string.match(cmd, '(.-\n)(.+)')
+      local multiline = false
+      if cmd:match('for') then
+         line,cmd = cmd,''
+         multiline = true
+      else
+         line, cmd = string.match(cmd, '(.-\n)(.+)')
+      end
       if not line then
          break
       end
@@ -204,7 +241,7 @@ function Live:consoleEval(cmd)
       -- override print function to reroute stdout to console
       local result = ''
       local print = _G.print
-      _G.print = function(sym) result = result .. tostring(sym) end
+      _G.print = function(sym) result = result .. tostring(sym) .. '\n' end
 
       -- then exec new line
       loadstring(line)()
@@ -213,6 +250,9 @@ function Live:consoleEval(cmd)
       _G.print = print
 
       -- print command, and result
+      if multiline then
+         line = line:gsub('\n', '\n> ')
+      end
       self.consoleText = self.consoleText .. '> ' .. line
       if result ~= '' then
          self.consoleText = self.consoleText .. result .. '\n'
@@ -221,13 +261,17 @@ function Live:consoleEval(cmd)
       -- discard old lines that dont fit in the console anymore
       while true do
          local li = 0
-         for line in string.gmatch(self.consoleText, '(.-)\n') do
-            li = li + 1
-         end
+        for line in string.gmatch(self.consoleText, '(.-)\n') do
+           li = li + 1
+        end
          if self.currentY+10+li*self.fszn < self.szh-15*self.fszn then
             break
          end
          self.consoleText = string.match(self.consoleText, '.-\n(.+)')
+--          if not self.consoleText then
+--             self.consoleText = ''
+--             break
+--          end
       end
    end
 end
@@ -273,7 +317,23 @@ function Live.displaytimer(s,remainingmins)
    end
 end
 
+function Live:endslide()
+   if self.currentindex then
+      local slide = self.slides[self.currentindex]
+      if slide.luaend then
+         __luaend__ = nil
+         loadstring(slide.luaend)()
+         if __luaend__ then
+            __luaend__(self)
+         end
+      end
+   end
+end
+
 function Live:display(index)
+   self:endslide()
+   self.currentindex = index
+
    self.currentY = 3*self.fszn
    local w = self.w
    local slide = self.slides[index]
@@ -326,6 +386,14 @@ function Live:display(index)
 
    if slide.interaction then
       loadstring(slide.interaction)()
+   end
+
+   __luastart__ = nil
+   if slide.luastart then
+      loadstring(slide.luastart)()
+      if __luastart__ then
+         __luastart__(self)
+      end
    end
 end
 
@@ -393,6 +461,7 @@ function Live:show(startindex)
                  if not release then return end
                  release = false
                  if key == 'Key_Q' then
+                    self:endslide()
                     os.exit()
                  end
 
