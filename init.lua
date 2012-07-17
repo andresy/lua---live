@@ -4,13 +4,11 @@
 -- 
 -- how to use:
 --     create your slides in a single html file, then simply run:
---     $ qlua -lpresent
+--     $ torch -llive
 --     in the same directory.
 ----------------------------------------------------------------------
 
-require 'lab'
 require 'torch'
-require 'random'
 require 'qtwidget'
 
 ----------------------------------------------------------------------
